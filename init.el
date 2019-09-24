@@ -209,8 +209,14 @@
   (define-key prog-mode-map (kbd "C-SPC") 'company-complete))
 
 ;; for C/C++ use rtags: https://github.com/Andersbakken/rtags
+;; (setq-local company-backends '(company-clang))
 (add-hook 'c-mode-hook (lambda()
-                         (setq-local company-backends '(company-clang))
+                         (setq-local company-backends
+                                     '(company-clang
+                                       company-dabbrev-code
+                                       company-keywords
+                                       company-files
+                                       company-dabbrev))
                          (company-mode 1)))
 
 ;; layouts
