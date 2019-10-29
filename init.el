@@ -1,39 +1,83 @@
 ;;; package -- Summary
 ;;; Commentary:
 ;;
-;;    (      )
-;;    ))    ((
-;;   //      \\
-;;  | \\____// |
-;; \~/ ~    ~\/~~/
-;;  (|    _/o  ~~
-;;   /  /     ,|
-;;  (~~~)__.-\ |
-;;   ``~~    | |
-;;    |      | |
-;;    |        |
-;;   /          \
-;;  `\          /'
-;;    `\_    _/'
-;;       ~~~~
-;;
-;; ~~~~~~~~~~~~~~~
+;;     _-`````-,           ,- '- .
+;;   .'   .- - |          | - -.  `.
+;;  /.'  /                     `.   \
+;; :/   :      _...   ..._      ``   :
+;; ::   :     /._ .`:'_.._\.    ||   :
+;; ::    `._ ./  ,`  :    \ . _.''   .
+;; `:.      /   |  -.  \-. \\_      /
+;;   \:._ _/  .'   .@)  \@) ` `\ ,.'
+;;      _/,--'       .- .\,-.`--`.
+;;        ,'/''     (( \ `  )
+;;         /'/'  \    `-'  (
+;;          '/''  `._,-----'
+;;           ''/'    .,---'
+;;            ''/'      ;:
+;;              ''/''  ''/
+;;                ''/''/''
+;;                  '/'/'
+;;                   `;
+;;     ______
+;;    / ____/___ ___  ____ ___________
+;;   / __/ / __ `__ \/ __ `/ ___/ ___/
+;;  / /___/ / / / / / /_/ / /__(__  )
+;; /_____/_/ /_/ /_/\__,_/\___/____/
+;;       The One True Program.
 ;;; Code:
 
-(require 'package)
-(package-initialize)
-(setq package-archives '(("org"   . "http://orgmode.org/elpa/")
-                         ("gnu"   . "http://elpa.gnu.org/packages/")
-                         ("melpa" . "https://melpa.org/packages/")))
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-(require 'use-package)
+(setq package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ("melpa" . "http://melpa.milkbox.net/packages/")
+                         ("gnu" . "http://elpa.gnu.org/packages/")))
+
+;; Disable package initialize after us.  We either initialize it
+;; anyway in case of interpreted .emacs, or we don't want slow
+;; initizlization in case of byte-compiled .emacs.elc.
+(setq package-enable-at-startup nil)
+
+;; Ask package.el to not add (package-initialize) to .emacs.
+(setq package--init-file-ensured t)
+
+;; set use-package-verbose to t for interpreted .emacs,
+;; and to nil for byte-compiled .emacs.elc
+(eval-and-compile
+  (setq use-package-verbose (not (bound-and-true-p byte-compile-current-file))))
+
+;; Add the macro generated list of package.el loadpaths to load-path.
+(mapc #'(lambda (add) (add-to-list 'load-path add))
+      (eval-when-compile
+        (require 'package)
+        (package-initialize)
+        ;; Install use-package if not installed yet.
+        (unless (package-installed-p 'use-package)
+          (package-refresh-contents)
+          (package-install 'use-package))
+        (require 'use-package)
+        (let ((package-user-dir-real (file-truename package-user-dir)))
+          ;; The reverse is necessary, because outside we mapc
+          ;; add-to-list element-by-element, which reverses.
+          (nreverse (apply #'nconc
+                           ;; Only keep package.el provided loadpaths.
+                           (mapcar #'(lambda (path)
+                                       (if (string-prefix-p package-user-dir-real path)
+                                           (list path)
+                                         nil))
+                                   load-path))))))
+
+;; By default Emacs triggers garbage collection at ~0.8MB which makes
+;; startup really slow. Since most systems have at least 64MB of memory,
+;; we increase it during initialization.
+(setq gc-cons-threshold 64000000)
+(add-hook 'after-init-hook #'(lambda ()
+                               ;; restore after startup
+                               (setq gc-cons-threshold 800000)))
 
 (setq use-package-always-ensure t)
 (load (concat user-emacs-directory "golang.el"))
+(load (concat user-emacs-directory "evil.el"))
 
-;; ~~~ CORE ~~~
+;; ###########################################
 
 (server-start)
 
@@ -45,6 +89,7 @@
 (set-selection-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
 
+;; UI
 (set-fringe-mode 0)
 (save-place-mode 1)
 (blink-cursor-mode 0)
@@ -55,7 +100,9 @@
 (global-hl-line-mode t)
 (electric-pair-mode t)
 (global-font-lock-mode 1)
+(setq x-stretch-cursor t)
 
+;; default windows width
 (add-to-list 'default-frame-alist '(width . 130))
 
 (defadvice term-handle-exit
@@ -83,7 +130,6 @@
 (setq-default scroll-up-aggressively 0.01
               scroll-down-aggressively 0.01)
 
-;; startup screen
 (setq inhibit-startup-screen t
       initial-scratch-message (format ";; %s" (current-time-string)))
 
@@ -101,25 +147,56 @@
 
 (defvar autosave-dir (concat user-emacs-directory "autosave/"))
 (when (not (file-exists-p autosave-dir)) (make-directory autosave-dir t))
-(setq make-backup-files nil             ;; fuck them up, 2019 out there, everybody use git
+(setq make-backup-files nil
       auto-save-file-name-transforms `((".*" ,autosave-dir t))
-      auto-save-default t               ;; auto-save every buffer that visits a file
-      auto-save-timeout 20              ;; number of seconds idle time before auto-save (default: 30)
-      auto-save-interval 200)           ;; number of keystrokes between auto-saves (default: 300)
+      auto-save-default nil   ;; auto-save every buffer that visits a file
+      auto-save-timeout 20    ;; number of seconds idle time before auto-save (default: 30)
+      auto-save-interval 200) ;; number of keystrokes between auto-saves (default: 300)
 
-(defun aggressive-prog-mode ()
-  "Common rules for all prog modes."
-  (display-line-numbers-mode))
+(setq vc-follow-symlinks t)
 
-(defun aggressive-elisp-mode ()
-  "Elisp specific rules."
-  (aggressive-indent-mode t))
+;; Remove trailing whitespace upon saving
+;; Note: because of a bug in EIN we only delete trailing whitespace
+;; when not in EIN mode.
+(add-hook 'before-save-hook
+          (lambda ()
+            (when (not (derived-mode-p 'ein:notebook-multilang-mode))
+              (delete-trailing-whitespace))))
 
-;; hooks
-(add-hook 'prog-mode-hook 'aggressive-prog-mode)
-(add-hook 'emacs-lisp-mode-hook 'aggressive-elisp-mode)
+;; Highlight some keywords in prog-mode
+(add-hook 'prog-mode-hook
+          (lambda ()
+            ;; Highlighting in cmake-mode this way interferes with
+            ;; cmake-font-lock, which is something I don't yet understand.
+            (when (not (derived-mode-p 'cmake-mode))
+              (font-lock-add-keywords
+               nil
+               '(("\\<\\(FIXME\\|TODO\\)"
+                  1 font-lock-warning-face t))))))
 
-;; ~~~ PACKAGES ~~~
+(add-hook 'prog-mode-hook (lambda ()
+                            (display-line-numbers-mode)
+                            (aggressive-indent-mode t)))
+
+;; ###########################################
+
+(use-package protobuf-mode
+  :mode (".yml" ".yaml"))
+
+(use-package yaml-mode
+  :mode (".yml" ".yaml"))
+
+(use-package json-mode
+  :mode (".json" ".imp"))
+
+(use-package dockerfile-mode
+  :mode ("Dockerfile"))
+
+(use-package asm-mode
+  :mode ("\\.s\\'"))
+
+(use-package markdown-mode
+  :mode (".md" ".markdown"))
 
 (use-package imenu
   :config
@@ -131,25 +208,6 @@
   :config
   (show-paren-mode t)
   (setq show-paren-style 'parenthesis))
-
-(use-package evil
-  :init
-  (setq evil-want-C-u-scroll t)
-  (setq evil-want-C-i-jump nil)
-  :config
-
-  ;; fix underscore
-  (with-eval-after-load 'evil
-    (defalias #'forward-evil-word #'forward-evil-symbol)
-    (setq-default evil-symbol-word-search t))
-  
-  (evil-mode t)
-  (setq evil-insert-state-map (make-sparse-keymap))
-  (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
-  (setq evil-emacs-state-modes (delq 'ibuffer-mode evil-emacs-state-modes))
-  (setq evil-normal-state-cursor '(box "gainsboro")
-        evil-insert-state-cursor '((bar . 2) "light steel blue")
-        evil-visual-state-cursor '((hbar . 2) "light steel blue")))
 
 (use-package general
   :config (general-define-key
@@ -212,30 +270,23 @@
   (define-key company-active-map (kbd "C-k") 'company-select-previous)
   (define-key company-search-map (kbd "C-j") 'company-select-next)
   (define-key company-search-map (kbd "C-k") 'company-select-previous)
-  (define-key prog-mode-map (kbd "C-SPC") 'company-complete))
+  (define-key prog-mode-map (kbd "C-SPC") 'company-complete)
 
-;; for C/C++ use rtags: https://github.com/Andersbakken/rtags
-;; (setq-local company-backends '(company-clang))
-(add-hook 'c-mode-hook (lambda()
-                         (setq-local company-backends
-                                     '(company-clang
-                                       company-dabbrev-code
-                                       company-keywords
-                                       company-files
-                                       company-dabbrev))
-                         (company-mode 1)))
+  ;; for C/C++ use rtags: https://github.com/Andersbakken/rtags
+  (add-hook 'c-mode-hook (lambda()
+                           (setq-local company-backends
+                                       '(company-clang
+                                         company-dabbrev-code
+                                         company-keywords
+                                         company-files
+                                         company-dabbrev))
+                           (company-mode 1))))
 
 ;; layouts
 (use-package eyebrowse
   :config
   (eyebrowse-mode 1)
   (setq-default eyebrowse-new-workspace t))
-
-(use-package js2-mode
-  :config
-  (add-hook 'restclient-mode-hook
-            (lambda ()
-              (setq-local indent-line-function 'js-indent-line))))
 
 ;; restclient - orgstruct for .http files
 (use-package restclient
@@ -248,6 +299,12 @@
       (orgstruct-mode)
       (setq-default orgstruct-heading-prefix-regexp "\\#+\\")))
   (add-hook 'find-file-hook 'http-restclient))
+
+(use-package js2-mode
+  :config
+  (add-hook 'restclient-mode-hook
+            (lambda ()
+              (setq-local indent-line-function 'js-indent-line))))
 
 ;; Syntax check
 (use-package flycheck
@@ -329,33 +386,14 @@
     (diminish 'undo-tree-mode)
     (diminish 'eldoc-mode)))
 
-;; extrimely fucking cool tool
 (use-package xclip
   :config (xclip-mode))
-
-(use-package evil-escape
-  :config
-  (global-set-key (kbd "<escape>") 'evil-escape))
-
-(use-package magit
-  :init
-  (setq magit-completing-read-function 'ivy-completing-read))
-
-(use-package evil-magit)
 
 (use-package diff-hl
   :config
   (global-diff-hl-mode)
   (diff-hl-margin-mode)
   (diff-hl-flydiff-mode))
-
-;; ------------------------
-
-;;   (global-git-gutter-mode +1)
-;;   ;; (git-gutter:linum-setup)
-;;   ;; REVERT
-;;   ;; (global-set-key (kbd "C-x v r") 'git-gutter:revert-hunk)
-;;   )
 
 ;; (use-package diff-mode
 ;;   :ensure nil
@@ -421,8 +459,8 @@
    dired-ls-F-marks-symlinks nil
    dired-recursive-copies 'always))
 
-;; improve fuzzy finder
-(use-package flx)
+;; ;; improve fuzzy finder
+;; (use-package flx)
 
 ;; sexy color scheme
 (use-package kaolin-themes
@@ -433,11 +471,6 @@
 
 ;; Easy-motion
 (use-package avy)
-
-;; "gc" comments
-(use-package evil-commentary
-  :diminish evil-commentary-mode
-  :config (evil-commentary-mode 1))
 
 ;; which Key
 (use-package which-key
@@ -456,10 +489,6 @@
 
 (use-package aggressive-indent
   :diminish aggressive-indent-mode)
-
-;; (use-package json-mode)
-;; (use-package yaml-mode)
-;; (use-package js2-mode :mode "\\.js\\'")
 
 ;; ~~~ CUSTOM ~~~
 
@@ -483,11 +512,6 @@
     (switch-to-buffer (cl-find-if (lambda (buffer)
                                     (not (eq buffer current-buffer)))
                                   (mapcar #'car (window-prev-buffers window))))))
-
-(defun term-mode-paste ()
-  "Paste into Emacs terminal like with bash."
-  (define-key term-raw-map (kbd "C-y") 'term-paste))
-(add-hook 'term-mode-hook 'term-mode-paste)
 
 ;; ~~~ END ~~~
 (custom-set-variables

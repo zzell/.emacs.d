@@ -2,3 +2,5 @@
 !.gitignore
 !init.el
 !golang.el
+!evil.el
+!early-init.el
