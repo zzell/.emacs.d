@@ -272,6 +272,10 @@
   (setq show-paren-delay 0) ;; doesn't load
   (setq show-paren-style 'parenthesis))
 
+;; darker parens
+(use-package paren-face
+  :config (global-paren-face-mode))
+
 (use-package general
   :config (general-define-key
            :states '(normal visual)
@@ -279,11 +283,8 @@
            "1" '(eyebrowse-switch-to-window-config-1 :which-key "layout 1")
            "2" '(eyebrowse-switch-to-window-config-2 :which-key "layout 2")
            "3" '(eyebrowse-switch-to-window-config-3 :which-key "layout 3")
-           "4" '(eyebrowse-switch-to-window-config-4 :which-key "layout 4")
-           "5" '(eyebrowse-switch-to-window-config-5 :which-key "layout 5")
            "j" '(avy-goto-char-timer :which-key "avy-jump")
            "/" '(swiper :which-key "swiper")
-           "*" '(counsel-projectile-grep :which-key "grep-regex")
            "t" '(ansi-term :which-key "terminal")
            "p" '(counsel-yank-pop :which-key "yank-pop")
            "TAB" '(alternate-buffer :which-key "alternate-buffer")
@@ -316,13 +317,18 @@
 
            "l" '(:ignore t :which-key "lisp")
            "le" '(eval-region :which-key "eval-region")
+
+           "v" '(:ignore t :which-key "version control")
+           "vr" '(diff-hl-revert-hunk :which-key "revert")
+           "vn" '(diff-hl-next-hunk :which-key "next")
+           "vp" '(diff-hl-previous-hunk :which-key "previous")
            ))
 
-;; ;; layouts
-;; (use-package eyebrowse
-;;   :config
-;;   (eyebrowse-mode 1)
-;;   (setq-default eyebrowse-new-workspace t))
+;; layouts
+(use-package eyebrowse
+  :config
+  (eyebrowse-mode 1)
+  (setq-default eyebrowse-new-workspace t))
 
 ;; Syntax check
 (use-package flycheck
@@ -383,6 +389,8 @@
    dired-listing-switches "-alh"
    dired-ls-F-marks-symlinks nil
    dired-recursive-copies 'always))
+
+(use-package doom-themes)
 
 ;; sexy color scheme
 (use-package kaolin-themes
@@ -507,16 +515,3 @@
 ;;   )
 
 ;; ###########################################
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(evil-cleverparens ycmd auto-complete-exuberant-ctags auto-complete-c-headers auto-complete-clang auto-complete aggressive-indent highlight-parentheses which-key evil-commentary avy kaolin-themes flx diff-hl evil-magit magit evil-escape xclip diminish counsel-projectile projectile neotree counsel flycheck-pos-tip restclient js2-mode eyebrowse general evil company-go flycheck-golangci-lint go-eldoc go-fill-struct go-guru go-mode use-package)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(company-preview ((t (:underline nil)))))

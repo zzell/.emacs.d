@@ -1,7 +1,6 @@
 ;;; package --- Summary
 ;;; Commentary:
 ;;; Code:
-
 (use-package evil
   :init
   (setq evil-want-C-u-scroll t)
@@ -16,9 +15,10 @@
   (setq evil-insert-state-map (make-sparse-keymap))
   (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
   (setq evil-emacs-state-modes (delq 'ibuffer-mode evil-emacs-state-modes))
-  (setq evil-normal-state-cursor '(box "gainsboro")
-        evil-insert-state-cursor '((bar . 2) "light steel blue")
-        evil-visual-state-cursor '((hbar . 2) "light steel blue")))
+  (setq evil-normal-state-cursor '(box)
+        evil-insert-state-cursor '((bar . 2))
+        evil-visual-state-cursor '((hbar . 2)))
+  )
 
 (use-package evil-escape
   :config
