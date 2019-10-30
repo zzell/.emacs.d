@@ -102,7 +102,7 @@
 (global-hl-line-mode t)
 (electric-pair-mode t)
 (global-font-lock-mode 1)
-(setq x-stretch-cursor t)
+(setq x-stretch-cursor nil)
 
 ;; default windows width
 (add-to-list 'default-frame-alist '(width . 130))
@@ -390,13 +390,9 @@
    dired-ls-F-marks-symlinks nil
    dired-recursive-copies 'always))
 
-(use-package doom-themes)
-
 ;; sexy color scheme
 (use-package kaolin-themes
-  :config
-  ;; (load-theme 'kaolin-dark t)
-  (load-theme 'kaolin-galaxy t))
+  :config (load-theme 'kaolin-galaxy t))
 
 ;; easymotion
 (use-package avy)
