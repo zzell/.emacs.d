@@ -8,11 +8,10 @@
   (setq evil-want-C-i-jump nil)
   :config
 
-  ;; treat underscore as part of word
-  (with-eval-after-load 'evil
-    (defalias #'forward-evil-word #'forward-evil-symbol)
-    (setq-default evil-symbol-word-search t))
-  
+  (add-hook 'after-change-major-mode-hook
+            (lambda ()
+              (modify-syntax-entry ?_ "w")))
+
   (evil-mode t)
   (setq evil-insert-state-map (make-sparse-keymap))
   (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
