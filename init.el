@@ -88,6 +88,8 @@
 (set-keyboard-coding-system 'utf-8)
 (set-selection-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
+(setq locale-coding-system 'utf-8
+      default-process-coding-system '(utf-8-unix . utf-8-unix))
 
 ;; UI
 (set-fringe-mode 0)
@@ -112,9 +114,8 @@
 
 (setq x-underline-at-descent-line t)
 (setq confirm-kill-emacs #'yes-or-no-p)
-(setq locale-coding-system 'utf-8
-      default-process-coding-system '(utf-8-unix . utf-8-unix))
 
+;; mouse
 (setq mouse-wheel-follow-mouse 't
       scroll-conservatively 1000
       scroll-margin 1
@@ -125,11 +126,10 @@
       fast-but-imprecise-scrolling nil
       jit-lock-defer-time 0)
 
-(setq-default ring-bell-function 'ignore)
-
 (setq-default scroll-up-aggressively 0.01
               scroll-down-aggressively 0.01)
 
+(setq-default ring-bell-function 'ignore)
 (setq inhibit-startup-screen t
       initial-scratch-message (format ";; %s" (current-time-string)))
 
@@ -171,14 +171,76 @@
             (when (not (derived-mode-p 'cmake-mode))
               (font-lock-add-keywords
                nil
-               '(("\\<\\(FIXME\\|TODO\\)"
-                  1 font-lock-warning-face t))))))
+               '(("\\<\\(FIXME\\|TODO\\)" 1 font-lock-warning-face t))))))
 
 (add-hook 'prog-mode-hook (lambda ()
                             (display-line-numbers-mode)
                             (aggressive-indent-mode t)))
 
 ;; ###########################################
+
+;; autocomplete
+(use-package company
+  :diminish company-mode
+  :config
+  (custom-set-faces '(company-preview ((t (:underline nil)))))
+  (add-hook 'prog-mode-hook 'company-mode)
+  (setq company-global-modes '(not gud-mode))
+  (setq company-tooltip-minimum-width 30)
+  (setq company-idle-delay 0)
+  (setq company-echo-delay 0)
+
+  (define-key company-active-map (kbd "C-j") 'company-select-next)
+  (define-key company-active-map (kbd "C-k") 'company-select-previous)
+  (define-key company-search-map (kbd "C-j") 'company-select-next)
+  (define-key company-search-map (kbd "C-k") 'company-select-previous)
+  (define-key prog-mode-map (kbd "C-SPC") 'company-complete)
+
+  ;; for C/C++ use rtags: https://github.com/Andersbakken/rtags
+  (add-hook 'c-mode-hook (lambda()
+                           (setq-local company-backends
+                                       '(company-clang
+                                         company-dabbrev-code
+                                         company-keywords
+                                         company-files
+                                         company-dabbrev))
+                           (company-mode 1))))
+
+;; http client + orgstruct for .http files
+(use-package restclient
+  :config
+  (defun http-restclient ()
+    "Use restclient mode in .http files."
+    (when (and (stringp buffer-file-name) (string-match "\\.http\\'" buffer-file-name))
+      (restclient-mode)
+      (orgstruct-mode)
+      (setq-default orgstruct-heading-prefix-regexp "\\#+\\")))
+  ;; improve JSON intentations
+  (add-hook 'restclient-mode-hook (lambda () (setq-local indent-line-function 'js-indent-line)))
+  (add-hook 'find-file-hook 'http-restclient))
+
+;; Ivy
+(use-package counsel
+  :diminish ivy-mode
+  :init
+  (setq counsel-yank-pop-separator
+        (concat "\n\n" (concat (apply 'concat (make-list 50 "---")) "\n")))
+  :config
+  (ivy-mode 1)
+  (define-key ivy-minibuffer-map (kbd "C-j") 'ivy-next-line)
+  (define-key ivy-minibuffer-map (kbd "C-k") 'ivy-previous-line)
+  (define-key ivy-minibuffer-map (kbd "C-u") 'ivy-scroll-down-command)
+  (define-key ivy-minibuffer-map (kbd "C-d") 'ivy-scroll-up-command)
+  (define-key ivy-minibuffer-map (kbd "C-n") 'ivy-next-history-element)
+  (define-key ivy-minibuffer-map (kbd "C-p") 'ivy-previous-history-element)
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq ivy-re-builders-alist
+        '((swiper . ivy--regex-ignore-order)
+          (t . ivy--regex-fuzzy))))
+
+(use-package js2-mode
+  :mode(".js"))
 
 (use-package protobuf-mode
   :mode (".yml" ".yaml"))
@@ -201,12 +263,13 @@
 (use-package imenu
   :config
   (setq imenu-auto-rescan t
-        imenu-use-popup-menu nil)
-  (semantic-mode 1))
+        imenu-use-popup-menu nil))
 
+;; highlight matching parenthesis
 (use-package paren
   :config
   (show-paren-mode t)
+  (setq show-paren-delay 0) ;; doesn't load
   (setq show-paren-style 'parenthesis))
 
 (use-package general
@@ -255,56 +318,11 @@
            "le" '(eval-region :which-key "eval-region")
            ))
 
-;; autocomplete
-(use-package company
-  :diminish company-mode
-  :config
-  (custom-set-faces '(company-preview ((t (:underline nil)))))
-  (add-hook 'prog-mode-hook 'company-mode)
-  (setq company-global-modes '(not gud-mode))
-  (setq company-tooltip-minimum-width 30)
-  (setq company-idle-delay 0)
-  (setq company-echo-delay 0)
-
-  (define-key company-active-map (kbd "C-j") 'company-select-next)
-  (define-key company-active-map (kbd "C-k") 'company-select-previous)
-  (define-key company-search-map (kbd "C-j") 'company-select-next)
-  (define-key company-search-map (kbd "C-k") 'company-select-previous)
-  (define-key prog-mode-map (kbd "C-SPC") 'company-complete)
-
-  ;; for C/C++ use rtags: https://github.com/Andersbakken/rtags
-  (add-hook 'c-mode-hook (lambda()
-                           (setq-local company-backends
-                                       '(company-clang
-                                         company-dabbrev-code
-                                         company-keywords
-                                         company-files
-                                         company-dabbrev))
-                           (company-mode 1))))
-
-;; layouts
-(use-package eyebrowse
-  :config
-  (eyebrowse-mode 1)
-  (setq-default eyebrowse-new-workspace t))
-
-;; restclient - orgstruct for .http files
-(use-package restclient
-  :config
-  (defun http-restclient ()
-    "Use restclient mode in .http files."
-    (when (and (stringp buffer-file-name)
-               (string-match "\\.http\\'" buffer-file-name))
-      (restclient-mode)
-      (orgstruct-mode)
-      (setq-default orgstruct-heading-prefix-regexp "\\#+\\")))
-  (add-hook 'find-file-hook 'http-restclient))
-
-(use-package js2-mode
-  :config
-  (add-hook 'restclient-mode-hook
-            (lambda ()
-              (setq-local indent-line-function 'js-indent-line))))
+;; ;; layouts
+;; (use-package eyebrowse
+;;   :config
+;;   (eyebrowse-mode 1)
+;;   (setq-default eyebrowse-new-workspace t))
 
 ;; Syntax check
 (use-package flycheck
@@ -313,72 +331,6 @@
   (setq flycheck-check-syntax-automatically '(mode-enabled save idle-change idle-buffer-switch new-line))
   (setq flycheck-indication-mode nil))
 
-(use-package flycheck-pos-tip
-  :config
-  (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
-  (setq flycheck-pos-tip-timeout 20))
-
-;; Ivy
-(use-package counsel
-  :diminish ivy-mode
-  :init
-  (setq counsel-yank-pop-separator
-        (concat "\n\n" (concat (apply 'concat (make-list 50 "---")) "\n")))
-  :config
-  (ivy-mode 1)
-  (define-key ivy-minibuffer-map (kbd "C-j") 'ivy-next-line)
-  (define-key ivy-minibuffer-map (kbd "C-k") 'ivy-previous-line)
-  (define-key ivy-minibuffer-map (kbd "C-u") 'ivy-scroll-down-command)
-  (define-key ivy-minibuffer-map (kbd "C-d") 'ivy-scroll-up-command)
-  (define-key ivy-minibuffer-map (kbd "C-n") 'ivy-next-history-element)
-  (define-key ivy-minibuffer-map (kbd "C-p") 'ivy-previous-history-element)
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "(%d/%d) ")
-  (setq ivy-re-builders-alist
-        '((swiper . ivy--regex-ignore-order)
-          (t . ivy--regex-fuzzy))))
-
-(use-package neotree
-  :config (global-set-key (kbd "M-1") 'neotree-toggle)
-  (setq neo-theme 'ascii)
-  (setq neo-window-width 35)
-  (setq projectile-switch-project-action 'neotree-projectile-action)
-  (setq-default neo-smart-open t)
-  (setq neo-show-hidden-files t)
-  (setq neo-force-change-root t)
-  (evil-define-key 'normal neotree-mode-map
-    (kbd "RET") (neotree-make-executor
-                 :file-fn 'neo-open-file
-                 :dir-fn 'neo-open-dir)
-    (kbd "TAB") (neotree-make-executor
-                 :dir-fn 'neo-open-dir)
-    "R" 'neotree-change-root
-    "gr" 'neotree-refresh
-    "q" 'neotree-hide
-    "H" 'neotree-hidden-file-toggle
-    "c" 'neotree-create-node
-    "y" 'neotree-copy-node
-    "d" 'neotree-delete-node
-    "r" 'neotree-rename-node
-    "J" 'neotree-dir
-    "+" 'neotree-stretch-toggle
-    "|" (neotree-make-executor
-         :file-fn 'neo-open-file-vertical-split)
-    "-" (neotree-make-executor
-         :file-fn 'neo-open-file-horizontal-split)
-    )
-  )
-
-(use-package projectile
-  :diminish projectile-mode
-  :init
-  (setq projectile-completion-system 'ivy)
-  (setq projectile-switch-project-action 'neotree-projectile-action)
-  :config (projectile-mode t))
-
-(use-package counsel-projectile
-  :config (counsel-projectile-mode))
-
 ;; hide minor modes
 (use-package diminish
   :config
@@ -386,43 +338,16 @@
     (diminish 'undo-tree-mode)
     (diminish 'eldoc-mode)))
 
+;; copy and paste from clipboard in terminal
 (use-package xclip
   :config (xclip-mode))
 
+;; highlight changes in file under version control
 (use-package diff-hl
   :config
   (global-diff-hl-mode)
   (diff-hl-margin-mode)
   (diff-hl-flydiff-mode))
-
-;; (use-package diff-mode
-;;   :ensure nil
-;;   :config
-;;   (set-face-attribute 'diff-added nil :background nil)
-;;   (set-face-attribute 'diff-removed nil :background nil))
-
-;; (use-package ediff-init
-;;   :ensure nil
-;;   :config
-;;   (me/unboldify '(ediff-fine-diff-A
-;;                   ediff-fine-diff-B
-;;                   ediff-fine-diff-C)))
-
-;; (use-package ediff-wind
-;;   :ensure nil
-;;   :config
-;;   (setq-default
-;;    ediff-split-window-function #'split-window-horizontally
-;;    ediff-window-setup-function #'ediff-setup-windows-plain))
-
-;; (use-package smerge-mode
-;;   :ensure nil
-;;   :config
-;;   (zenburn-with-color-variables
-;;    (set-face-attribute 'smerge-mine nil :background zenburn-red-2)
-;;    (set-face-attribute 'smerge-other nil :background zenburn-green)
-;;    (set-face-attribute 'smerge-refined-added nil :background zenburn-green-1)
-;;    (set-face-attribute 'smerge-refined-removed nil :background zenburn-red-4)))
 
 (use-package dired
   :ensure nil
@@ -459,17 +384,13 @@
    dired-ls-F-marks-symlinks nil
    dired-recursive-copies 'always))
 
-;; ;; improve fuzzy finder
-;; (use-package flx)
-
 ;; sexy color scheme
 (use-package kaolin-themes
   :config
   ;; (load-theme 'kaolin-dark t)
-  (load-theme 'kaolin-galaxy t)
-  )
+  (load-theme 'kaolin-galaxy t))
 
-;; Easy-motion
+;; easymotion
 (use-package avy)
 
 ;; which Key
@@ -480,47 +401,119 @@
   :diminish which-key-mode
   :config (which-key-mode))
 
-(use-package highlight-parentheses
-  :diminish 'highlight-parentheses-mode
-  :config
-  (add-hook 'prog-mode-hook #'highlight-parentheses-mode)
-  (set-face-attribute 'hl-paren-face nil :weight 'ultra-bold)
-  (setq hl-paren-colors '("Springgreen3" "IndianRed1" "IndianRed3" "IndianRed4" "firebrick4" "red4" "red4" "red4" "red4")))
-
 (use-package aggressive-indent
   :diminish aggressive-indent-mode)
 
-;; ~~~ CUSTOM ~~~
-
-(defun smarter-move-beginning-of-line (arg)
-  (interactive "^p")
-  (setq arg (or arg 1))
-  (when (/= arg 1)
-    (let ((line-move-visual nil))
-      (forward-line (1- arg))))
-  (let ((orig-point (point)))
-    (back-to-indentation)
-    (when (= orig-point (point))
-      (move-beginning-of-line 1))))
-(global-set-key [remap move-beginning-of-line]
-                'smarter-move-beginning-of-line)
+;; ###########################################
 
 (defun alternate-buffer
     (&optional window)
+  "Switch between alternate buffers, WINDOW."
   (interactive)
   (let ((current-buffer (window-buffer window)))
     (switch-to-buffer (cl-find-if (lambda (buffer)
                                     (not (eq buffer current-buffer)))
                                   (mapcar #'car (window-prev-buffers window))))))
 
-;; ~~~ END ~~~
+;; ###########################################
+
+;; ;; do I need this?
+;; (use-package highlight-parentheses
+;;   :diminish 'highlight-parentheses-mode
+;;   :config
+;;   (add-hook 'prog-mode-hook #'highlight-parentheses-mode)
+;;   (set-face-attribute 'hl-paren-face nil :weight 'ultra-bold)
+;;   (setq hl-paren-colors '("Springgreen3" "IndianRed1" "IndianRed3" "IndianRed4" "firebrick4" "red4" "red4" "red4" "red4")))
+
+;; ;; improve fuzzy finder
+;; (use-package flx)
+
+;; ;; newer use it
+;; (use-package projectile
+;;   :diminish projectile-mode
+;;   :init
+;;   (setq projectile-completion-system 'ivy)
+;;   (setq projectile-switch-project-action 'neotree-projectile-action)
+;;   :config (projectile-mode t))
+;; (use-package counsel-projectile
+;;   :config (counsel-projectile-mode))
+
+;; ;; works too slow
+;; (use-package flycheck-pos-tip
+;;   :config
+;;   (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
+;;   (setq flycheck-pos-tip-timeout 20))
+
+;; (use-package diff-mode
+;;   :ensure nil
+;;   :config
+;;   (set-face-attribute 'diff-added nil :background nil)
+;;   (set-face-attribute 'diff-removed nil :background nil))
+
+;; (use-package ediff-init
+;;   :ensure nil
+;;   :config
+;;   (me/unboldify '(ediff-fine-diff-A
+;;                   ediff-fine-diff-B
+;;                   ediff-fine-diff-C)))
+
+;; (use-package ediff-wind
+;;   :ensure nil
+;;   :config
+;;   (setq-default
+;;    ediff-split-window-function #'split-window-horizontally
+;;    ediff-window-setup-function #'ediff-setup-windows-plain))
+
+;; (use-package smerge-mode
+;;   :ensure nil
+;;   :config
+;;   (zenburn-with-color-variables
+;;    (set-face-attribute 'smerge-mine nil :background zenburn-red-2)
+;;    (set-face-attribute 'smerge-other nil :background zenburn-green)
+;;    (set-face-attribute 'smerge-refined-added nil :background zenburn-green-1)
+;;    (set-face-attribute 'smerge-refined-removed nil :background zenburn-red-4)))
+
+
+;; ;; why don't use dired instead?
+;; (use-package neotree
+;;   :config (global-set-key (kbd "M-1") 'neotree-toggle)
+;;   (setq neo-theme 'ascii)
+;;   (setq neo-window-width 35)
+;;   (setq projectile-switch-project-action 'neotree-projectile-action)
+;;   (setq-default neo-smart-open t)
+;;   (setq neo-show-hidden-files t)
+;;   (setq neo-force-change-root t)
+;;   (evil-define-key 'normal neotree-mode-map
+;;     (kbd "RET") (neotree-make-executor
+;;                  :file-fn 'neo-open-file
+;;                  :dir-fn 'neo-open-dir)
+;;     (kbd "TAB") (neotree-make-executor
+;;                  :dir-fn 'neo-open-dir)
+;;     "R" 'neotree-change-root
+;;     "gr" 'neotree-refresh
+;;     "q" 'neotree-hide
+;;     "H" 'neotree-hidden-file-toggle
+;;     "c" 'neotree-create-node
+;;     "y" 'neotree-copy-node
+;;     "d" 'neotree-delete-node
+;;     "r" 'neotree-rename-node
+;;     "J" 'neotree-dir
+;;     "+" 'neotree-stretch-toggle
+;;     "|" (neotree-make-executor
+;;          :file-fn 'neo-open-file-vertical-split)
+;;     "-" (neotree-make-executor
+;;          :file-fn 'neo-open-file-horizontal-split)
+;;     )
+;;   )
+
+;; ###########################################
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(ycmd auto-complete-exuberant-ctags auto-complete-c-headers auto-complete-clang auto-complete aggressive-indent highlight-parentheses which-key evil-commentary avy kaolin-themes flx diff-hl evil-magit magit evil-escape xclip diminish counsel-projectile projectile neotree counsel flycheck-pos-tip restclient js2-mode eyebrowse general evil company-go flycheck-golangci-lint go-eldoc go-fill-struct go-guru go-mode use-package)))
+   '(evil-cleverparens ycmd auto-complete-exuberant-ctags auto-complete-c-headers auto-complete-clang auto-complete aggressive-indent highlight-parentheses which-key evil-commentary avy kaolin-themes flx diff-hl evil-magit magit evil-escape xclip diminish counsel-projectile projectile neotree counsel flycheck-pos-tip restclient js2-mode eyebrowse general evil company-go flycheck-golangci-lint go-eldoc go-fill-struct go-guru go-mode use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
