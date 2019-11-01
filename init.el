@@ -178,6 +178,17 @@
                             (aggressive-indent-mode t)))
 
 ;; ###########################################
+(use-package lsp-mode
+  :config
+  (setq lsp-prefer-flymake nil))
+
+(use-package lsp-ui
+  :config
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-ui-sideline-enable nil))
+
+(use-package yasnippet
+  :diminish yasnippet-mode)
 
 ;; autocomplete
 (use-package company
@@ -334,8 +345,14 @@
 (use-package flycheck
   :config
   (add-hook 'prog-mode-hook 'flycheck-mode)
-  (setq flycheck-check-syntax-automatically '(mode-enabled save idle-change idle-buffer-switch new-line))
+  (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change idle-buffer-switch new-line))
   (setq flycheck-indication-mode nil))
+
+;; ;; works too slow
+(use-package flycheck-pos-tip
+  :config
+  (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
+  (setq flycheck-pos-tip-timeout 20))
 
 ;; hide minor modes
 (use-package diminish
@@ -442,12 +459,6 @@
 ;; (use-package counsel-projectile
 ;;   :config (counsel-projectile-mode))
 
-;; ;; works too slow
-;; (use-package flycheck-pos-tip
-;;   :config
-;;   (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
-;;   (setq flycheck-pos-tip-timeout 20))
-
 ;; (use-package diff-mode
 ;;   :ensure nil
 ;;   :config
@@ -511,3 +522,16 @@
 ;;   )
 
 ;; ###########################################
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(company-preview ((t (:underline nil)))))
