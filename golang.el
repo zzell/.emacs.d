@@ -6,7 +6,6 @@
                ("gocode"        . "go get -u github.com/mdempsky/gocode")
                ("golangci-lint" . "curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.21.0")
                ("goimports"     . "go get -u -v golang.org/x/tools/cmd/goimports")
-               ("godef"         . "go get github.com/rogpeppe/godef")
                ("guru"          . "go get -u -v golang.org/x/tools/cmd/guru")
                ("gorename"      . "go get -u -v golang.org/x/tools/cmd/gorename")
                ("fillstruct"    . "go get -u github.com/davidrjenni/reftools/cmd/fillstruct")
@@ -36,6 +35,7 @@
 (use-package go-add-tags) ;; experimental
 (use-package go-playground)
 (use-package go-stacktracer)
+(use-package go-fill-struct)
 (use-package flycheck-golangci-lint
   :config
   (setq flycheck-golangci-lint-enable-all t)

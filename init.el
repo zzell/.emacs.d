@@ -356,7 +356,6 @@
   (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change idle-buffer-switch new-line))
   (setq flycheck-indication-mode nil))
 
-;; ;; works too slow
 (use-package flycheck-pos-tip
   :config
   (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
