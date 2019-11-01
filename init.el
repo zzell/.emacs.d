@@ -181,27 +181,22 @@
 
 (use-package lsp-mode
   :config
-  (setq lsp-prefer-flymake nil)
-  )
+  (setq lsp-prefer-flymake nil))
 
 ;; lsp-ui-peek-find-references
 ;; lsp-ui-jump-forward
 ;; lsp-ui-jump-backward
-;; (setq lsp-ui-flycheck-enable t) ;; lsp-ui-flycheck-list
-;; (use-package lsp-ui
-;;   :config
-;;   ;; (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-;;   (setq lsp-ui-doc-enable nil)
-;;   (setq lsp-ui-sideline-enable nil)
-;;   (setq lsp-ui-flycheck-enable t)
-;;   )
+;; lsp-ui-flycheck-list
+;; lsp-rename !!!
 
-;; TODO: failed to install
-;; (use-package lsp-ivy)
-
-(use-package company-lsp
+(use-package lsp-ui
   :config
-  (add-to-list 'company-backends 'company-lsp))
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-ui-sideline-enable nil)
+  (setq lsp-ui-flycheck-enable t))
+
+(use-package yasnippet
+  :diminish yas-minor-mode)
 
 ;; autocomplete
 (use-package company
@@ -358,7 +353,7 @@
 (use-package flycheck
   :config
   (add-hook 'prog-mode-hook 'flycheck-mode)
-  (setq flycheck-check-syntax-automatically '(mode-enabled save idle-change idle-buffer-switch new-line))
+  (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change idle-buffer-switch new-line))
   (setq flycheck-indication-mode nil))
 
 (use-package flycheck-pos-tip
@@ -540,7 +535,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(lsp-ivy paren-face yaml-mode xclip which-key use-package restclient protobuf-mode neotree markdown-mode kaolin-themes json-mode js2-mode highlight-parentheses go-guru go-fill-struct go-eldoc general flycheck-pos-tip flycheck-golangci-lint flx eyebrowse evil-magit evil-escape evil-commentary edit-server dockerfile-mode diminish diff-hl counsel-projectile company-go avy aggressive-indent)))
+   '(go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
