@@ -179,6 +179,30 @@
 
 ;; ###########################################
 
+(use-package lsp-mode
+  :config
+  (setq lsp-prefer-flymake nil)
+  )
+
+;; lsp-ui-peek-find-references
+;; lsp-ui-jump-forward
+;; lsp-ui-jump-backward
+;; (setq lsp-ui-flycheck-enable t) ;; lsp-ui-flycheck-list
+;; (use-package lsp-ui
+;;   :config
+;;   ;; (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+;;   (setq lsp-ui-doc-enable nil)
+;;   (setq lsp-ui-sideline-enable nil)
+;;   (setq lsp-ui-flycheck-enable t)
+;;   )
+
+;; TODO: failed to install
+;; (use-package lsp-ivy)
+
+(use-package company-lsp
+  :config
+  (add-to-list 'company-backends 'company-lsp))
+
 ;; autocomplete
 (use-package company
   :diminish company-mode
@@ -337,6 +361,11 @@
   (setq flycheck-check-syntax-automatically '(mode-enabled save idle-change idle-buffer-switch new-line))
   (setq flycheck-indication-mode nil))
 
+(use-package flycheck-pos-tip
+  :config
+  (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
+  (setq flycheck-pos-tip-timeout 20))
+
 ;; hide minor modes
 (use-package diminish
   :config
@@ -442,12 +471,6 @@
 ;; (use-package counsel-projectile
 ;;   :config (counsel-projectile-mode))
 
-;; ;; works too slow
-;; (use-package flycheck-pos-tip
-;;   :config
-;;   (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
-;;   (setq flycheck-pos-tip-timeout 20))
-
 ;; (use-package diff-mode
 ;;   :ensure nil
 ;;   :config
@@ -511,3 +534,16 @@
 ;;   )
 
 ;; ###########################################
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(lsp-ivy paren-face yaml-mode xclip which-key use-package restclient protobuf-mode neotree markdown-mode kaolin-themes json-mode js2-mode highlight-parentheses go-guru go-fill-struct go-eldoc general flycheck-pos-tip flycheck-golangci-lint flx eyebrowse evil-magit evil-escape evil-commentary edit-server dockerfile-mode diminish diff-hl counsel-projectile company-go avy aggressive-indent)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(company-preview ((t (:underline nil)))))
