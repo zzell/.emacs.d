@@ -183,12 +183,6 @@
   :config
   (setq lsp-prefer-flymake nil))
 
-;; lsp-ui-peek-find-references
-;; lsp-ui-jump-forward
-;; lsp-ui-jump-backward
-;; lsp-ui-flycheck-list
-;; lsp-rename !!!
-
 (use-package lsp-ui
   :config
   (setq lsp-ui-doc-enable nil)
@@ -302,9 +296,9 @@
            "1" '(eyebrowse-switch-to-window-config-1 :which-key "layout 1")
            "2" '(eyebrowse-switch-to-window-config-2 :which-key "layout 2")
            "3" '(eyebrowse-switch-to-window-config-3 :which-key "layout 3")
-           "j" '(avy-goto-char-timer :which-key "avy-jump")
+           "j" '(avy-goto-char-timer :which-key "avy-goto-char-timer")
            "/" '(swiper :which-key "swiper")
-           "t" '(ansi-term :which-key "terminal")
+           "t" '(ansi-term :which-key "ansi-term")
            "p" '(counsel-yank-pop :which-key "yank-pop")
            "TAB" '(alternate-buffer :which-key "alternate-buffer")
            "i" '(counsel-imenu :which-key "imenu")
@@ -312,30 +306,38 @@
 
            "f" '(:ignore t :which-key "files")
            "ff" '(counsel-find-file :which-key "find")
-           "fp" '(counsel-projectile-find-file :which-key "projectile-find-file")
            "fr" '(counsel-recentf :which-key "recent")
 
            "b" '(:ignore t :which-key "buffers")
-           "bb" '(counsel-ibuffer :which-key "ivy-switch")
+           "bb" '(counsel-ibuffer :which-key "switch")
            "bi" '(ibuffer-other-window :which-key "ibuffer")
            "br" '(rename-buffer :which-key "rename")
 
            "g"  '(:ignore t :which-key "golang")
            "gf" '(gofmt :which-key "gofmt")
            "ga" '(go-import-add :which-key "add-import")
-           "gr" '(go-remove-unused-imports :which-key "remove-unused-imports")
-           "gj" '(godef-jump :which-key "godef-jump")
-           "gJ" '(go-guru-referrers :which-key "guru-referrers")
-           "gd" '(godef-describe :which-key "godef-describe")
-           "gc" '(godoc-at-point :which-key "godoc-at-point")
+           "gn" '(go-goto-function-name :which-key "go-goto-function-name")
+           "gd" '(godoc-at-point :which-key "godoc-at-point")
+           "gj"  '(:ignore t :which-key "jump")
+           "gjo" '(godef-jump-other-window :which-key "godef-jump")
+           "gjj" '(godef-jump :which-key "godef-jump")
 
            "c"  '(:ignore t :which-key "flycheck")
            "cj" '(flycheck-next-error :which-key "next-error")
            "ck" '(flycheck-previous-error :which-key "previous-error")
            "cl" '(flycheck-list-errors :which-key "list-errors")
 
-           "l" '(:ignore t :which-key "lisp")
-           "le" '(eval-region :which-key "eval-region")
+           "e" '(:ignore t :which-key "elisp")
+           "ee" '(eval-region :which-key "eval-region")
+
+           "l" '(:ignore t :which-key "lsp")
+           "lr" '(lsp-rename :which-key "rename")
+           ;; "lf" '(lsp-ui-peek-jump-forward :which-key "jump-forward")
+           ;; "lb" '(lsp-ui-peek-jump-backward :which-key "jump-backward")
+           "ll" '(lsp-ui-flycheck-list :which-key "flycheck-list")
+           "lf" '(:ignore t :which-key "find")
+           "lfd" '(lsp-ui-peek-find-definitions :which-key "definitions")
+           "lfr" '(lsp-ui-peek-find-references :which-key "references")
 
            "v" '(:ignore t :which-key "version control")
            "vr" '(diff-hl-revert-hunk :which-key "revert")

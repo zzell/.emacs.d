@@ -9,7 +9,9 @@
                ("guru"          . "go get -u -v golang.org/x/tools/cmd/guru")
                ("gorename"      . "go get -u -v golang.org/x/tools/cmd/gorename")
                ("fillstruct"    . "go get -u github.com/davidrjenni/reftools/cmd/fillstruct")
-               ("gomodifytags"  . "go get -u github.com/fatih/gomodifytags"))))
+               ("gomodifytags"  . "go get -u github.com/fatih/gomodifytags")
+               ("godef"         . "go get -u github.com/rogpeppe/godef")
+               )))
 
   (mapc (lambda (element)
           (let ((name (car element)) (cmd (cdr element)))
