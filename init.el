@@ -184,10 +184,16 @@
   (setq lsp-prefer-flymake nil))
 
 (use-package lsp-ui
+  :hook (lsp-ui-mode . lsp-ui-sideline-mode)
   :config
   (setq lsp-ui-doc-enable nil)
   (setq lsp-ui-sideline-enable nil)
-  (setq lsp-ui-flycheck-enable t))
+  (setq lsp-ui-flycheck-enable t)
+  (setq lsp-ui-sideline-ignore-duplicate t)
+  (setq lsp-ui-sideline-show-symbol nil)
+
+  (define-key lsp-ui-peek-mode-map (kbd "C-k") 'lsp-ui-peek--select-prev)
+  (define-key lsp-ui-peek-mode-map (kbd "C-j") 'lsp-ui-peek--select-next))
 
 (use-package yasnippet
   :diminish yas-minor-mode)
@@ -338,7 +344,8 @@
            "lf" '(:ignore t :which-key "find")
            "lfd" '(lsp-ui-peek-find-definitions :which-key "definitions")
            "lfr" '(lsp-ui-peek-find-references :which-key "references")
-           "li" '(lsp-ui-imenu :which-key "imenu")
+           ;; "li" '(lsp-ui-imenu :which-key "imenu")
+           "ls" '(lsp-ui-sideline-toggle-symbols-info :which-key "sideline")
 
            "v" '(:ignore t :which-key "version control")
            "vr" '(diff-hl-revert-hunk :which-key "revert")
