@@ -22,14 +22,13 @@
                     (format "%s%s%s" "if command -v " name " >/dev/null; then printf 0; else printf 1; fi")) "1")
               (progn (message "installing %s..." name) (shell-command-to-string cmd))))) tools))
 
-(add-hook 'go-mode-hook (lambda ()
+(add-hook 'go-mode-hook (lambda () (lsp)
                           ;; not the greates solution, but works
                           (add-to-list 'flycheck-checkers 'golangci-lint)
                           (flycheck-add-next-checker 'lsp-ui '(t . golangci-lint))
                           (aggressive-indent-mode t)
-                          (add-hook 'before-save-hook 'gofmt-before-save)
                           (add-hook 'lsp-eldoc-hook 'go-eldoc-setup)
-                          (lsp)))
+                          (add-hook 'before-save-hook 'gofmt-before-save)))
 
 (use-package go-mode
   :config (setq-default gofmt-command "goimports"))

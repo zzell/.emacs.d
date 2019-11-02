@@ -181,7 +181,13 @@
 
 (use-package lsp-mode
   :config
-  (setq lsp-prefer-flymake nil))
+  (setq lsp-prefer-flymake nil)
+
+  ;; prefer aggressive-indent-mode
+  (setq lsp-enable-indentation nil)
+  (setq lsp-enable-on-type-formatting nil)
+
+  (setq company-lsp-cache-candidates 'auto))
 
 (use-package lsp-ui
   :hook (lsp-ui-mode . lsp-ui-sideline-mode)
@@ -338,13 +344,13 @@
 
            "l" '(:ignore t :which-key "lsp")
            "lr" '(lsp-rename :which-key "rename")
-           ;; "lf" '(lsp-ui-peek-jump-forward :which-key "jump-forward")
-           ;; "lb" '(lsp-ui-peek-jump-backward :which-key "jump-backward")
+           "lf" '(lsp-ui-peek-jump-forward :which-key "jump-forward")
+           "lb" '(lsp-ui-peek-jump-backward :which-key "jump-backward")
            "ll" '(lsp-ui-flycheck-list :which-key "flycheck-list")
-           "lf" '(:ignore t :which-key "find")
-           "lfd" '(lsp-ui-peek-find-definitions :which-key "definitions")
-           "lfr" '(lsp-ui-peek-find-references :which-key "references")
-           ;; "li" '(lsp-ui-imenu :which-key "imenu")
+           "lp" '(:ignore t :which-key "peek-findfind")
+           "lpd" '(lsp-ui-peek-find-definitions :which-key "definitions")
+           "lpr" '(lsp-ui-peek-find-references :which-key "references")
+           "li" '(lsp-ui-imenu :which-key "imenu")
            "ls" '(lsp-ui-sideline-toggle-symbols-info :which-key "sideline")
 
            "v" '(:ignore t :which-key "version control")
