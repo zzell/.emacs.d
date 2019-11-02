@@ -319,7 +319,7 @@
            "gn" '(go-goto-function-name :which-key "go-goto-function-name")
            "gd" '(godoc-at-point :which-key "godoc-at-point")
            "gj"  '(:ignore t :which-key "jump")
-           "gjo" '(godef-jump-other-window :which-key "godef-jump")
+           "gjo" '(godef-jump-other-window :which-key "godef-jump-other-window")
            "gjj" '(godef-jump :which-key "godef-jump")
 
            "c"  '(:ignore t :which-key "flycheck")
@@ -338,6 +338,7 @@
            "lf" '(:ignore t :which-key "find")
            "lfd" '(lsp-ui-peek-find-definitions :which-key "definitions")
            "lfr" '(lsp-ui-peek-find-references :which-key "references")
+           "li" '(lsp-ui-imenu :which-key "imenu")
 
            "v" '(:ignore t :which-key "version control")
            "vr" '(diff-hl-revert-hunk :which-key "revert")

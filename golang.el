@@ -2,7 +2,9 @@
 ;;; Commentary:
 ;;; Code:
 
-(let ((tools '(("gopls"         . "GO111MODULE=on go get golang.org/x/tools/gopls@latest")
+(let ((tools '(("bingo"         . "go get -u github.com/saibing/bingo")
+               ;; not stable yet
+               ;; ("gopls"         . "GO111MODULE=on go get golang.org/x/tools/gopls@latest")
                ("gocode"        . "go get -u github.com/mdempsky/gocode")
                ("golangci-lint" . "curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.21.0")
                ("goimports"     . "go get -u -v golang.org/x/tools/cmd/goimports")
