@@ -19,7 +19,7 @@
                     (format "%s%s%s" "if command -v " name " >/dev/null; then printf 0; else printf 1; fi")) "1")
               (progn (message "installing %s..." name) (shell-command-to-string cmd))))) tools))
 
-(add-hook 'go-mode-hook (lambda () (lsp)
+(add-hook 'go-mode-hook (lambda () (lsp-deferred)
                           ;; not the greates solution, but works
                           (add-to-list 'flycheck-checkers 'golangci-lint)
                           (flycheck-add-next-checker 'lsp-ui '(t . golangci-lint))

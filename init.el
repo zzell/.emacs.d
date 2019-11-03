@@ -314,7 +314,10 @@
            "p" '(counsel-yank-pop :which-key "yank-pop")
            "TAB" '(alternate-buffer :which-key "alternate-buffer")
            "i" '(counsel-imenu :which-key "imenu")
-           "d" '(dired-other-frame :which-key "dired-other-frame")
+
+           "d" '(:ignore t :which-key "dired")
+           "dd" '(dired-jump :which-key "jump")
+           "df" '(dired-find :which-key "find")
 
            "f" '(:ignore t :which-key "files")
            "ff" '(counsel-find-file :which-key "find")
@@ -329,7 +332,7 @@
            "gf" '(gofmt :which-key "gofmt")
            "ga" '(go-import-add :which-key "add-import")
            "gn" '(go-goto-function-name :which-key "go-goto-function-name")
-           "gd" '(godoc-at-point :which-key "godoc-at-point")
+           "gd" '(godoc :which-key "godoc")
            "gj"  '(:ignore t :which-key "jump")
            "gjo" '(godef-jump-other-window :which-key "godef-jump-other-window")
            "gjj" '(godef-jump :which-key "godef-jump")
@@ -352,6 +355,7 @@
            "lpr" '(lsp-ui-peek-find-references :which-key "references")
            "li" '(lsp-ui-imenu :which-key "imenu")
            "ls" '(lsp-ui-sideline-toggle-symbols-info :which-key "sideline")
+           "ld" '(lsp-describe-thing-at-point :which-key "describe")
 
            "v" '(:ignore t :which-key "version control")
            "vr" '(diff-hl-revert-hunk :which-key "revert")
@@ -551,7 +555,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent)))
+   '(fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
