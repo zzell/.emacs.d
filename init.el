@@ -186,7 +186,7 @@
   ;; prefer aggressive-indent-mode
   (setq lsp-enable-indentation nil)
   (setq lsp-enable-on-type-formatting nil)
-  (setq lsp-eldoc-render-all t)
+  (setq lsp-eldoc-render-all nil)
   (setq company-lsp-cache-candidates 'auto))
 
 (use-package lsp-ui
