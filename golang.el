@@ -5,15 +5,13 @@
 (let ((tools '(("bingo"         . "go get -u github.com/saibing/bingo")
                ;; not stable yet
                ;; ("gopls"         . "GO111MODULE=on go get golang.org/x/tools/gopls@latest")
-               ("gocode"        . "go get -u github.com/mdempsky/gocode")
                ("golangci-lint" . "curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.21.0")
                ("goimports"     . "go get -u -v golang.org/x/tools/cmd/goimports")
                ("guru"          . "go get -u -v golang.org/x/tools/cmd/guru")
                ("gorename"      . "go get -u -v golang.org/x/tools/cmd/gorename")
                ("fillstruct"    . "go get -u github.com/davidrjenni/reftools/cmd/fillstruct")
                ("gomodifytags"  . "go get -u github.com/fatih/gomodifytags")
-               ("godef"         . "go get -u github.com/rogpeppe/godef")
-               )))
+               ("godef"         . "go get -u github.com/rogpeppe/godef"))))
 
   (mapc (lambda (element)
           (let ((name (car element)) (cmd (cdr element)))
@@ -27,7 +25,6 @@
                           (add-to-list 'flycheck-checkers 'golangci-lint)
                           (flycheck-add-next-checker 'lsp-ui '(t . golangci-lint))
                           (aggressive-indent-mode t)
-                          (add-hook 'lsp-eldoc-hook 'go-eldoc-setup)
                           (add-hook 'before-save-hook 'gofmt-before-save)))
 
 (use-package go-mode
