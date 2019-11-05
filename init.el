@@ -173,21 +173,16 @@
                nil
                '(("\\<\\(FIXME\\|TODO\\)" 1 font-lock-warning-face t))))))
 
-(add-hook 'prog-mode-hook (lambda ()
-                            (display-line-numbers-mode)
-                            (aggressive-indent-mode t)))
+(add-hook 'prog-mode-hook (lambda () (display-line-numbers-mode)))
+
+;; use aggressive-indent only for certain modes
+(add-hook 'emacs-lisp-mode-hook 'aggressive-indent-mode)
 
 ;; ###########################################
 
 (use-package lsp-mode
   :config
-  (setq lsp-prefer-flymake nil)
-
-  ;; prefer aggressive-indent-mode
-  (setq lsp-enable-indentation nil)
-  (setq lsp-enable-on-type-formatting nil)
-  (setq lsp-eldoc-render-all nil)
-  (setq company-lsp-cache-candidates 'auto))
+  (setq lsp-prefer-flymake nil))
 
 (use-package lsp-ui
   :hook (lsp-ui-mode . lsp-ui-sideline-mode)
@@ -356,6 +351,8 @@
            "li" '(lsp-ui-imenu :which-key "imenu")
            "ls" '(lsp-ui-sideline-toggle-symbols-info :which-key "sideline")
            "ld" '(lsp-describe-thing-at-point :which-key "describe")
+           "lw" '(:ignore t :which-key "workspace")
+           "lwr" '(lsp-workspace-restart :which-key "restart")
 
            "v" '(:ignore t :which-key "version control")
            "vr" '(diff-hl-revert-hunk :which-key "revert")
