@@ -53,8 +53,6 @@
 (defvar go-custom-package nil)
 (defvar go-custom-init nil)
 
-;; (setq go-custom-cache (list))
-
 (defun go-custom-packages-function ()
   "Return imports list for 'go-packages-function'."
   go-custom-cache)
@@ -64,7 +62,7 @@
 Should be used as hook for 'go-mode'.
 Looks for imports depending on project. If new buffer belongs
 to previously opened project it does nothing, unless called interactively.
-Otherwise loads imports for different project. If file isn't in GOPATH loads
+Otherwise loads imports for project. If file isn't in GOPATH loads
 system-wide imports. I used to determine if function is called interactively."
   (interactive "i")
   (let* ((pkg (go-custom--find-package))
@@ -82,13 +80,10 @@ system-wide imports. I used to determine if function is called interactively."
                      ,pkg '(lambda (imports)
                              (go-custom--append-to-cache imports)
                              (if imports (message "Found %S vendored imports." (length imports))))))))
-
         (go-custom--find-all-imports
          '(lambda (imports)
             (go-custom--append-to-cache imports)
-            (if imports (message "Found all %S imports." (length imports)))))
-
-        ))))
+            (if imports (message "Found all %S imports." (length imports)))))))))
 
 (defun go-custom--find-native-imports (callback)
   "Asynchronously find native imports.
