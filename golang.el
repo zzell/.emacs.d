@@ -45,90 +45,62 @@
                                                  "prealloc" "gochecknoglobals" "gosec"
                                                  "funlen" "wsl" "gocognit")))
 
-(setq go-packages-function 'go-custom-packages-function)
-(add-hook 'go-mode-hook `(lambda () (go-custom-refresh-imports t)))
+(setq go-packages-function 'custom/go-packages-function)
+(add-hook 'go-mode-hook `(lambda () (custom/go-refresh-packages t)))
 
-(defconst go-custom-gopath (shell-command-to-string "printf $GOPATH"))
-(defvar go-custom-cache (list))
-(defvar go-custom-package nil)
-(defvar go-custom-init nil)
+(defvar custom/go-packages-cache (list))
 
-(defun go-custom-packages-function ()
-  "Return imports list for 'go-packages-function'."
-  go-custom-cache)
+(defun custom/go-packages-function ()
+  "Return packages list for 'go-packages-function'."
+  custom/go-packages-cache)
 
-(defun go-custom-refresh-imports (i)
-  "Refresh cached imports.
-Should be used as hook for 'go-mode'.
-Looks for imports depending on project. If new buffer belongs
-to previously opened project it does nothing, unless called interactively.
-Otherwise loads imports for project. If file isn't in GOPATH loads
-system-wide imports. I used to determine if function is called interactively."
+(defun custom/go-refresh-packages (i)
+  "Refresh cached packages. I used to determine if fn called interactively.
+This function should be called on 'go-mode-hook'.
+It finds native and vendored imports asynchronously.
+It does nothing if 'custom/go-packages-cache' isn't empty, unless called interactively."
   (interactive "i")
-  (let* ((pkg (go-custom--find-package))
-         (same-pkg (string= go-custom-package pkg)))
-    (when (or (not i) (not same-pkg) (not go-custom-init))
-      (setq go-custom-package pkg)
-      (setq go-custom-cache (list))
-      (setq go-custom-init t)
-      (if pkg (progn
-                (go-custom--find-native-imports
-                 `(lambda (imports)
-                    (go-custom--append-to-cache imports)
-                    (if imports (message "Found %S native imports." (length imports)))
-                    (go-custom--find-vendored-imports
-                     ,pkg '(lambda (imports)
-                             (go-custom--append-to-cache imports)
-                             (if imports (message "Found %S vendored imports." (length imports))))))))
-        (go-custom--find-all-imports
-         '(lambda (imports)
-            (go-custom--append-to-cache imports)
-            (if imports (message "Found all %S imports." (length imports)))))))))
 
-(defun go-custom--find-native-imports (callback)
-  "Asynchronously find native imports.
-CALLBACK - filter function that receives list of packages."
-  (process-shell-command-stdout-list  "go list -e ..." callback))
+  (when (or (not i) (= (length custom/go-packages-cache) 0))
+    (setq custom/go-packages-cache (list))
+    (let ((add-to-cache
+           '(lambda (packages)
+              (setq custom/go-packages-cache
+                    (sort
+                     (copy-sequence (append custom/go-packages-cache (delete-dups packages)))
+                     #'string-lessp)))))
 
-(defun go-custom--find-vendored-imports (pkg callback)
-  "Asynchronously find vendored imports (e.g. when using Glide).
-PKG - go package where to look up.
-CALLBACK - filter function that receives list of packages."
-  (let* ((absolute-path (concat go-custom-gopath "/src/" pkg))
-         (vendor-path (shell-command-to-string (format "find %S -type d -name 'vendor' -prune | tr -d '\n'" absolute-path))))
-    (unless (string= vendor-path "")
-      (process-shell-command-stdout-list
-       (format "go list -e %S/..." (replace-regexp-in-string "^.*?\/src\/" "" vendor-path))
-       `(lambda (imports) (,callback (go-custom--rm-vendor-prefix imports)))))))
+      (custom/go-find-native-packages add-to-cache)
+      (custom/go-find-vendored-packages add-to-cache))))
 
-(defun go-custom--find-all-imports (callback)
-  "Asynchronously find all system imports.
-CALLBACK - filter function that receives list of packages."
-  (process-shell-command-stdout-list
-   "go list -e all"
-   `(lambda (imports) (,callback (go-custom--rm-vendor-prefix imports)))))
+(defun custom/go-find-native-packages (callback)
+  "Asynchronously find native packages. CALLBACK - function that receives list of packages."
+  (process-shell-command-stdout-list  "(cd ~ && go list -e ...)" callback))
 
-(defun go-custom--append-to-cache (imports)
-  "Add IMPORTS to cache."
-  (setq go-custom-cache (sort (copy-sequence (append go-custom-cache (delete-dups imports))) #'string-lessp)))
+(defun custom/go-find-vendored-packages (callback)
+  "Asynchronously find vendored packages. CALLBACK - function that receives list of packages."
+  (let ((pkg (custom/go-find-current-package)))
+    (when pkg
+      (let* ((absolute-path (concat (getenv "GOPATH") "/src/" pkg))
+             (vendor-path (shell-command-to-string (format "find %S -type d -name 'vendor' -prune | tr -d '\n'" absolute-path))))
+        (unless (string= vendor-path "")
+          (process-shell-command-stdout-list
+           (format "go list -e %S/..." (replace-regexp-in-string "^.*?\/src\/" "" vendor-path))
+           `(lambda (packages)
+              (let ((unprefix (list)))
+                (dolist (p packages) (push (replace-regexp-in-string "^.*?\/vendor\/" "" p) unprefix))
+                (,callback unprefix)))))))))
 
-(defun go-custom--find-package ()
-  "Return project in form 'github.com/user/project' or nil if project is not in GOPATH."
-  (let ((gopath-src (concat go-custom-gopath "/src"))
-        (pwd (shell-command-to-string "pwd | tr -d '\n'")))
-    (when (string-match-p gopath-src pwd)
-      (let ((elems (split-string (substring pwd (1+ (length gopath-src)) nil) "/")))
+(defun custom/go-find-current-package ()
+  "Return current package."
+  (let ((gosrc (concat (getenv "GOPATH") "/src/")))
+    (when (string-match-p gosrc default-directory)
+      (let ((elems (split-string (substring default-directory (length gosrc) nil) "/")))
         (when (>= (length elems) 3)
           (concat (nth 0 elems) "/" (nth 1 elems) "/" (nth 2 elems)))))))
 
-(defun go-custom--rm-vendor-prefix (imports)
-  "Remove 'vendor' prefix from IMPORTS."
-  (let ((unprefix (list)))
-    (dolist (i imports) (push (replace-regexp-in-string "^.*?\/vendor\/" "" i) unprefix)) unprefix))
-
 (defun process-shell-command-stdout-list (cmd callback)
-  "Run CMD asynchronously and call CALLBACK on exit.
-CALLBACK is filter function that receives one parameter - list of lines from CMD stdout."
+  "Run CMD asynchronously and exec CALLBACK on exit passing stdout as list of lines."
   (let ((tmp-buf (generate-new-buffer "*loading*")))
     (set-process-sentinel
      (start-process (number-to-string (random)) tmp-buf shell-file-name shell-command-switch cmd)
