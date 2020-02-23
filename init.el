@@ -133,7 +133,7 @@
 (setq inhibit-startup-screen t
       initial-scratch-message (format ";; %s" (current-time-string)))
 
-(setq-default indent-tabs-mode nil
+(setq-default indent-tabs-mode t
               tab-width 2
               truncate-lines t
               cursor-in-non-selected-windows t)
@@ -185,7 +185,6 @@
   (setq lsp-prefer-flymake nil))
 
 (use-package lsp-ui
-  :hook (lsp-ui-mode . lsp-ui-sideline-mode)
   :config
   (setq lsp-ui-doc-enable nil)
   (setq lsp-ui-sideline-enable nil)
@@ -449,6 +448,14 @@
 (use-package aggressive-indent
   :diminish aggressive-indent-mode)
 
+;; sudo apt-get install silversearcher-ag
+(use-package ag
+	:config
+	(setq ag-highlight-search t)
+	(setq ag-reuse-window 't))
+
+(use-package wgrep-ag)
+
 ;; ###########################################
 
 (defun alternate-buffer
@@ -461,101 +468,17 @@
                                   (mapcar #'car (window-prev-buffers window))))))
 
 ;; ###########################################
-
-;; ;; do I need this?
-;; (use-package highlight-parentheses
-;;   :diminish 'highlight-parentheses-mode
-;;   :config
-;;   (add-hook 'prog-mode-hook #'highlight-parentheses-mode)
-;;   (set-face-attribute 'hl-paren-face nil :weight 'ultra-bold)
-;;   (setq hl-paren-colors '("Springgreen3" "IndianRed1" "IndianRed3" "IndianRed4" "firebrick4" "red4" "red4" "red4" "red4")))
-
-;; ;; improve fuzzy finder
-;; (use-package flx)
-
-;; ;; newer use it
-;; (use-package projectile
-;;   :diminish projectile-mode
-;;   :init
-;;   (setq projectile-completion-system 'ivy)
-;;   (setq projectile-switch-project-action 'neotree-projectile-action)
-;;   :config (projectile-mode t))
-;; (use-package counsel-projectile
-;;   :config (counsel-projectile-mode))
-
-;; (use-package diff-mode
-;;   :ensure nil
-;;   :config
-;;   (set-face-attribute 'diff-added nil :background nil)
-;;   (set-face-attribute 'diff-removed nil :background nil))
-
-;; (use-package ediff-init
-;;   :ensure nil
-;;   :config
-;;   (me/unboldify '(ediff-fine-diff-A
-;;                   ediff-fine-diff-B
-;;                   ediff-fine-diff-C)))
-
-;; (use-package ediff-wind
-;;   :ensure nil
-;;   :config
-;;   (setq-default
-;;    ediff-split-window-function #'split-window-horizontally
-;;    ediff-window-setup-function #'ediff-setup-windows-plain))
-
-;; (use-package smerge-mode
-;;   :ensure nil
-;;   :config
-;;   (zenburn-with-color-variables
-;;    (set-face-attribute 'smerge-mine nil :background zenburn-red-2)
-;;    (set-face-attribute 'smerge-other nil :background zenburn-green)
-;;    (set-face-attribute 'smerge-refined-added nil :background zenburn-green-1)
-;;    (set-face-attribute 'smerge-refined-removed nil :background zenburn-red-4)))
-
-
-;; ;; why don't use dired instead?
-;; (use-package neotree
-;;   :config (global-set-key (kbd "M-1") 'neotree-toggle)
-;;   (setq neo-theme 'ascii)
-;;   (setq neo-window-width 35)
-;;   (setq projectile-switch-project-action 'neotree-projectile-action)
-;;   (setq-default neo-smart-open t)
-;;   (setq neo-show-hidden-files t)
-;;   (setq neo-force-change-root t)
-;;   (evil-define-key 'normal neotree-mode-map
-;;     (kbd "RET") (neotree-make-executor
-;;                  :file-fn 'neo-open-file
-;;                  :dir-fn 'neo-open-dir)
-;;     (kbd "TAB") (neotree-make-executor
-;;                  :dir-fn 'neo-open-dir)
-;;     "R" 'neotree-change-root
-;;     "gr" 'neotree-refresh
-;;     "q" 'neotree-hide
-;;     "H" 'neotree-hidden-file-toggle
-;;     "c" 'neotree-create-node
-;;     "y" 'neotree-copy-node
-;;     "d" 'neotree-delete-node
-;;     "r" 'neotree-rename-node
-;;     "J" 'neotree-dir
-;;     "+" 'neotree-stretch-toggle
-;;     "|" (neotree-make-executor
-;;          :file-fn 'neo-open-file-vertical-split)
-;;     "-" (neotree-make-executor
-;;          :file-fn 'neo-open-file-horizontal-split)
-;;     )
-;;   )
-
-;; ###########################################
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(csv-mode fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent)))
+	 '(wgrep-ag csv-mode fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(company-preview ((t (:underline nil)))))
+(put 'dired-find-alternate-file 'disabled nil)
