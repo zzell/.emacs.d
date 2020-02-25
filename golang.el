@@ -2,9 +2,11 @@
 ;;; Commentary:
 ;;; Code:
 
-(let ((tools '(("bingo"         . "go get -u github.com/saibing/bingo")
-               ;; not stable yet
-               ;; ("gopls"         . "GO111MODULE=on go get golang.org/x/tools/gopls@latest")
+;; experimental lsp server: https://github.com/saibing/tools
+
+(let ((tools '(;; ("bingo"         . "go get -u github.com/saibing/bingo")
+               ;; not great but pretty good
+               ("gopls"         . "GO111MODULE=on go get golang.org/x/tools/gopls@latest")
                ("golangci-lint" . "curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.21.0")
                ("goimports"     . "go get -u -v golang.org/x/tools/cmd/goimports")
                ("guru"          . "go get -u -v golang.org/x/tools/cmd/guru")
@@ -22,14 +24,13 @@
 (use-package go-mode
   :config
   (setq-default gofmt-command "goimports")
-  (add-hook 'go-mode-hook 'lsp-deferred)
-  (add-hook 'before-save-hook 'gofmt-before-save)
-  (add-hook 'lsp-after-open-hook
-            '(lambda ()
-               (when (eq major-mode 'go-mode)
-                 ;; append golangci-lint after lsp-ui
-                 (add-to-list 'flycheck-checkers 'golangci-lint)
-                 (flycheck-add-next-checker 'lsp-ui '(t . golangci-lint))))))
+  (add-hook 'go-mode-hook 'lsp-deferred))
+
+(defun lsp-go-install-save-hooks ()
+	"."
+	(add-hook 'before-save-hook #'lsp-format-buffer t t)
+	(add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 
 (use-package go-fill-struct)
 (use-package go-eldoc)

@@ -27,6 +27,15 @@
 ;;       The One True Program.
 ;;; Code:
 
+;; By default Emacs triggers garbage collection at ~0.8MB which makes
+;; startup really slow.
+(setq gc-cons-threshold 100000000)
+
+;; Increase the amount of data which Emacs reads from the process. Again
+;; the emacs default is too low 4k considering that the some of the language
+;; server responses are in 800k - 3M range.
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+
 (setq package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")
                          ("gnu" . "http://elpa.gnu.org/packages/")))
@@ -64,14 +73,6 @@
                                            (list path)
                                          nil))
                                    load-path))))))
-
-;; By default Emacs triggers garbage collection at ~0.8MB which makes
-;; startup really slow. Since most systems have at least 64MB of memory,
-;; we increase it during initialization.
-(setq gc-cons-threshold 64000000)
-(add-hook 'after-init-hook #'(lambda ()
-                               ;; restore after startup
-                               (setq gc-cons-threshold 800000)))
 
 (setq use-package-always-ensure t)
 (load (concat user-emacs-directory "golang.el"))
@@ -182,21 +183,30 @@
 
 (use-package lsp-mode
   :config
-  (setq lsp-prefer-flymake nil))
+  (setq lsp-prefer-flymake nil)
+
+	;; Although company-lsp also supports caching lsp-mode’s company-capf
+	;; does that by default. To achieve that uninstall company-lsp or put these lines in your config:
+	(setq lsp-prefer-capf t))
 
 (use-package lsp-ui
+	:init (setq lsp-keymap-prefix "C-c l")
   :config
-  (setq lsp-ui-doc-enable nil)
-  (setq lsp-ui-sideline-enable nil)
   (setq lsp-ui-flycheck-enable t)
-  (setq lsp-ui-sideline-ignore-duplicate t)
-  (setq lsp-ui-sideline-show-symbol nil)
+  (setq lsp-ui-sideline-enable nil)
+
+	;; don't really like it
+  (setq lsp-ui-doc-enable nil)
+	;; (setq lsp-ui-doc-include-signature nil)
+	;; ;; (setq lsp-ui-doc-header nil) ;; no changes
+	;; ;; (setq lsp-ui-doc-use-childframe nil) ;; no changes
 
   (define-key lsp-ui-peek-mode-map (kbd "C-k") 'lsp-ui-peek--select-prev)
   (define-key lsp-ui-peek-mode-map (kbd "C-j") 'lsp-ui-peek--select-next))
 
 (use-package yasnippet
-  :diminish yas-minor-mode)
+  :diminish yas-minor-mode
+  :hook (go-mode . yas-minor-mode))
 
 ;; autocomplete
 (use-package company
@@ -208,6 +218,7 @@
   (setq company-tooltip-minimum-width 30)
   (setq company-idle-delay 0)
   (setq company-echo-delay 0)
+  (setq company-minimum-prefix-length 1)
 
   (define-key company-active-map (kbd "C-j") 'company-select-next)
   (define-key company-active-map (kbd "C-k") 'company-select-previous)
@@ -224,6 +235,8 @@
                                          company-files
                                          company-dabbrev))
                            (company-mode 1))))
+
+;; (use-package company-lsp)
 
 ;; http client + orgstruct for .http files
 (use-package restclient
@@ -257,6 +270,9 @@
   (setq ivy-re-builders-alist
         '((swiper . ivy--regex-ignore-order)
           (t . ivy--regex-fuzzy))))
+
+;; this one needed for ivy
+(use-package flx)
 
 (use-package js2-mode
   :mode(".js"))
@@ -474,7 +490,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-	 '(wgrep-ag csv-mode fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent)))
+	 (quote
+		(wgrep-ag csv-mode fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
