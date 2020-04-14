@@ -76,7 +76,6 @@
 
 (setq use-package-always-ensure t)
 (load (concat user-emacs-directory "golang.el"))
-(load (concat user-emacs-directory "evil.el"))
 
 ;; ###########################################
 
@@ -105,6 +104,9 @@
 (global-font-lock-mode 1)
 (setq x-stretch-cursor nil)
 
+;; font-size
+(set-face-attribute 'default nil :height 140)
+
 ;; default windows width
 (add-to-list 'default-frame-alist '(width . 130))
 
@@ -114,7 +116,7 @@
   (kill-buffer))
 
 (setq x-underline-at-descent-line t)
-(setq confirm-kill-emacs #'yes-or-no-p)
+(setq confirm-kill-emacs #'y-or-n-p)
 
 ;; mouse
 (setq mouse-wheel-follow-mouse 't
@@ -183,26 +185,52 @@
 
 (use-package lsp-mode
   :config
-  (setq lsp-prefer-flymake nil)
+	(setq lsp-prefer-capf t)
+	(push "[/\\\\]vendor$" lsp-file-watch-ignored))
 
-	;; Although company-lsp also supports caching lsp-mode’s company-capf
-	;; does that by default. To achieve that uninstall company-lsp or put these lines in your config:
-	(setq lsp-prefer-capf t))
+(use-package python-mode
+	:config (add-hook 'python-mode-hook 'lsp-deferred))
 
-(use-package lsp-ui
-	:init (setq lsp-keymap-prefix "C-c l")
+(defun lsp-save-hooks ()
+	"."
+	(add-hook 'before-save-hook #'lsp-format-buffer t t)
+	(add-hook 'before-save-hook #'lsp-organize-imports t t))
+
+(add-hook 'go-mode-hook #'lsp-save-hooks)
+(add-hook 'python-mode-hook #'lsp-save-hooks)
+
+(use-package evil
+  :init
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
+
   :config
-  (setq lsp-ui-flycheck-enable t)
-  (setq lsp-ui-sideline-enable nil)
 
-	;; don't really like it
-  (setq lsp-ui-doc-enable nil)
-	;; (setq lsp-ui-doc-include-signature nil)
-	;; ;; (setq lsp-ui-doc-header nil) ;; no changes
-	;; ;; (setq lsp-ui-doc-use-childframe nil) ;; no changes
+  (add-hook 'after-change-major-mode-hook
+            (lambda ()
+              (modify-syntax-entry ?_ "w")))
 
-  (define-key lsp-ui-peek-mode-map (kbd "C-k") 'lsp-ui-peek--select-prev)
-  (define-key lsp-ui-peek-mode-map (kbd "C-j") 'lsp-ui-peek--select-next))
+	(setq evil-disable-insert-state-bindings t)
+
+  (evil-mode t)
+  (setq evil-insert-state-map (make-sparse-keymap))
+  (define-key evil-insert-state-map (kbd "<escape>") 'evil-normal-state)
+  (setq evil-emacs-state-modes (delq 'ibuffer-mode evil-emacs-state-modes))
+  (setq evil-normal-state-cursor '(box)
+        evil-insert-state-cursor '((bar . 2))
+        evil-visual-state-cursor '((hbar . 2)))
+
+	(with-eval-after-load 'evil-maps
+		(define-key evil-normal-state-map (kbd "/") 'swiper)))
+
+(use-package evil-escape
+  :config
+  (global-set-key (kbd "<escape>") 'evil-escape))
+
+;; "gc" comments
+(use-package evil-commentary
+  :diminish evil-commentary-mode
+  :config (evil-commentary-mode 1))
 
 (use-package yasnippet
   :diminish yas-minor-mode
@@ -235,8 +263,6 @@
                                          company-files
                                          company-dabbrev))
                            (company-mode 1))))
-
-;; (use-package company-lsp)
 
 ;; http client + orgstruct for .http files
 (use-package restclient
@@ -311,69 +337,122 @@
 (use-package paren-face
   :config (global-paren-face-mode))
 
+(use-package hydra)
+
+(defhydra hydra-buffers (:color blue)
+	"#"
+  ("l" next-buffer "next" :color red)
+  ("h" previous-buffer "prev" :color red)
+  ("d" kill-this-buffer "delete" :color red)
+  ("b" counsel-ibuffer "switch")
+	("i" ibuffer-other-window "ibuffer")
+	("r" rename-buffer "rename" :color red))
+
+(defhydra hydra-flycheck (:color blue)
+	"#"
+	("j" flycheck-next-error "next" :color red)
+	("k" flycheck-previous-error "prev" :color red)
+	("l" flycheck-list-errors "list"))
+
+(defhydra hydra-vc (:color blue)
+	"VC"
+	("r" diff-hl-revert-hunk "revert")
+	("j" diff-hl-next-hunk "next" :color red)
+	("k" diff-hl-previous-hunk "prev" :color red))
+
+(defhydra hydra-eyebrowse (:color blue)
+	"EYE"
+	("l" eyebrowse-next-window-config "next" :color red)
+	("h" eyebrowse-prev-window-config "next" :color red)
+	("n" eyebrowse-create-window-config "new" :color red)
+	("1" eyebrowse-switch-to-window-config-1 "1")
+	("2" eyebrowse-switch-to-window-config-2 "2")
+	("3" eyebrowse-switch-to-window-config-3 "3")
+	("4" eyebrowse-switch-to-window-config-4 "4")
+	("5" eyebrowse-switch-to-window-config-5 "5"))
+
+(defhydra hydra-windows (:color blue)
+	"W"
+	("k" shrink-window "shrink-v" :color red)
+	("j" enlarge-window "enlarge-v" :color red)
+	("h" shrink-window-horizontally "shrink-h" :color red)
+	("l" enlarge-window-horizontally "enlarge-h" :color red))
+
 (use-package general
-  :config (general-define-key
-           :states '(normal visual)
-           :prefix ","
-           "1" '(eyebrowse-switch-to-window-config-1 :which-key "layout 1")
-           "2" '(eyebrowse-switch-to-window-config-2 :which-key "layout 2")
-           "3" '(eyebrowse-switch-to-window-config-3 :which-key "layout 3")
-           "j" '(avy-goto-char-timer :which-key "avy-goto-char-timer")
-           "/" '(swiper :which-key "swiper")
-           "t" '(ansi-term :which-key "ansi-term")
-           "p" '(counsel-yank-pop :which-key "yank-pop")
-           "TAB" '(alternate-buffer :which-key "alternate-buffer")
-           "i" '(counsel-imenu :which-key "imenu")
+  :config
+	(general-define-key
 
-           "d" '(:ignore t :which-key "dired")
-           "dd" '(dired-jump :which-key "jump")
-           "df" '(dired-find :which-key "find")
+	 :states '(normal visual)
+	 :prefix "g"
+	 "d" '(lsp-find-definition :wich-key "definition")
+	 "r" '(lsp-find-references :wich-key "references")
+	 "i" '(lsp-find-implementation :wich-key "implementation")
+	 "n" '(lsp-rename :wich-key "definition"))
 
-           "f" '(:ignore t :which-key "files")
-           "ff" '(counsel-find-file :which-key "find")
-           "fr" '(counsel-recentf :which-key "recent")
+	(general-define-key
+	 :states '(normal visual)
+	 :prefix "SPC"
+	 "/" '(counsel-projectile-ag :wich-key "ag")
+	 "TAB" '(alternate-buffer :which-key "alternate-buffer")
+	 "j" '(avy-goto-char-timer :which-key "jump avy-goto-char-timer")
+	 "t" '(ansi-term /bin/bash :which-key "ansi-term")
+	 "p" '(counsel-yank-pop :which-key "yank-pop")
+	 "i" '(counsel-imenu :which-key "imenu")
+	 "d" '(dired-jump :which-key "dired")
 
-           "b" '(:ignore t :which-key "buffers")
-           "bb" '(counsel-ibuffer :which-key "switch")
-           "bi" '(ibuffer-other-window :which-key "ibuffer")
-           "br" '(rename-buffer :which-key "rename")
+	 "f" '(:ignore t :which-key "files")
+	 "ff" '(counsel-find-file :which-key "find")
+	 "fr" '(counsel-recentf :which-key "recent")
+	 "f/" '(counsel-projectile-find-file :wich-key "find")
+	 "fw" '(counsel-projectile-find-file-dwim :wich-key "find dwim")
+	 "fg" '(counsel-git :wich-key "git")
 
-           "g"  '(:ignore t :which-key "golang")
-           "gf" '(gofmt :which-key "gofmt")
-           "ga" '(go-import-add :which-key "add-import")
-           "gn" '(go-goto-function-name :which-key "go-goto-function-name")
-           "gd" '(godoc :which-key "godoc")
-           "gj"  '(:ignore t :which-key "jump")
-           "gjo" '(godef-jump-other-window :which-key "godef-jump-other-window")
-           "gjj" '(godef-jump :which-key "godef-jump")
+	 "w" '(hydra-windows/body :which-key "windows")
+	 "0" '(hydra-eyebrowse/body :which-key "eyebrowse")
+	 "b" '(hydra-buffers/body :which-key "buffers")
+	 "c" '(hydra-flycheck/body :which-key "flycheck")
+	 "v" '(hydra-vc/body :which-key "vc")))
 
-           "c"  '(:ignore t :which-key "flycheck")
-           "cj" '(flycheck-next-error :which-key "next-error")
-           "ck" '(flycheck-previous-error :which-key "previous-error")
-           "cl" '(flycheck-list-errors :which-key "list-errors")
+(use-package neotree
+  :config ;;(global-set-key (kbd "M-1") 'neotree-toggle)
+  (setq neo-theme 'ascii)
+  (setq neo-window-width 35)
+  (setq projectile-switch-project-action 'neotree-projectile-action)
+  (setq-default neo-smart-open t)
+  (setq neo-show-hidden-files t)
+  (setq neo-force-change-root t)
+  (evil-define-key 'normal neotree-mode-map
+    (kbd "RET") (neotree-make-executor
+                 :file-fn 'neo-open-file
+                 :dir-fn 'neo-open-dir)
+    (kbd "TAB") (neotree-make-executor
+                 :dir-fn 'neo-open-dir)
+    "R" 'neotree-change-root
+    "gr" 'neotree-refresh
+    "q" 'neotree-hide
+    "H" 'neotree-hidden-file-toggle
+    "c" 'neotree-create-node
+    "y" 'neotree-copy-node
+    "d" 'neotree-delete-node
+    "r" 'neotree-rename-node
+    "J" 'neotree-dir
+    "+" 'neotree-stretch-toggle
+    "|" (neotree-make-executor
+         :file-fn 'neo-open-file-vertical-split)
+    "-" (neotree-make-executor
+         :file-fn 'neo-open-file-horizontal-split)
+    )
+  )
 
-           "e" '(:ignore t :which-key "elisp")
-           "ee" '(eval-region :which-key "eval-region")
+(use-package projectile
+  :diminish projectile-mode
+  :init
+  (setq projectile-completion-system 'ivy)
+  (setq projectile-switch-project-action 'neotree-projectile-action)
+  :config (projectile-mode t))
 
-           "l" '(:ignore t :which-key "lsp")
-           "lr" '(lsp-rename :which-key "rename")
-           "lf" '(lsp-ui-peek-jump-forward :which-key "jump-forward")
-           "lb" '(lsp-ui-peek-jump-backward :which-key "jump-backward")
-           "ll" '(lsp-ui-flycheck-list :which-key "flycheck-list")
-           "lp" '(:ignore t :which-key "peek-findfind")
-           "lpd" '(lsp-ui-peek-find-definitions :which-key "definitions")
-           "lpr" '(lsp-ui-peek-find-references :which-key "references")
-           "li" '(lsp-ui-imenu :which-key "imenu")
-           "ls" '(lsp-ui-sideline-toggle-symbols-info :which-key "sideline")
-           "ld" '(lsp-describe-thing-at-point :which-key "describe")
-           "lw" '(:ignore t :which-key "workspace")
-           "lwr" '(lsp-workspace-restart :which-key "restart")
-
-           "v" '(:ignore t :which-key "version control")
-           "vr" '(diff-hl-revert-hunk :which-key "revert")
-           "vn" '(diff-hl-next-hunk :which-key "next")
-           "vp" '(diff-hl-previous-hunk :which-key "previous")
-           ))
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
 
 ;; layouts
 (use-package eyebrowse
@@ -388,10 +467,10 @@
   (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change idle-buffer-switch new-line))
   (setq flycheck-indication-mode nil))
 
-(use-package flycheck-pos-tip
-  :config
-  (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
-  (setq flycheck-pos-tip-timeout 20))
+;; (use-package flycheck-pos-tip
+;;   :config
+;;   (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
+;;   (setq flycheck-pos-tip-timeout 20))
 
 ;; hide minor modes
 (use-package diminish
@@ -451,7 +530,9 @@
   :config (load-theme 'kaolin-galaxy t))
 
 ;; easymotion
-(use-package avy)
+(use-package avy
+	:config
+	(setq avy-background t))
 
 ;; which Key
 (use-package which-key
@@ -491,7 +572,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
 	 (quote
-		(wgrep-ag csv-mode fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent))))
+		(python-mode lsp-treemacs ace-jump-mode wgrep-ag csv-mode fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
