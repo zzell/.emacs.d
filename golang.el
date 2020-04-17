@@ -27,24 +27,29 @@
   :config
   (setq-default gofmt-command "goimports")
   (add-hook 'go-mode-hook 'lsp-deferred)
-  (add-hook 'lsp-after-open-hook
-            '(lambda ()
-               (when (eq major-mode 'go-mode)
-                 (add-to-list 'flycheck-checkers 'golangci-lint)
-                 (flycheck-add-next-checker 'lsp '(t . golangci-lint))))))
+  ;; (add-hook 'lsp-after-open-hook
+  ;;           '(lambda ()
+  ;;              (when (eq major-mode 'go-mode)
+	;; 							 (flycheck-golangci-lint-setup)
+	;; 							 (flycheck-add-next-checker 'golangci-lint 'lsp)
+	;; 							 ;; (flycheck-define-checker)
+	;; 							 ;; (add-to-list 'flycheck-checkers 'golangci-lint)
+	;; 							 ;; (flycheck-add-next-checker 'lsp '(t . golangci-lint))
+	;; 							 )))
+	)
 
 (use-package go-fill-struct)
 (use-package go-eldoc)
 (use-package go-tag)
 (use-package go-playground)
 (use-package go-stacktracer)
-(use-package flycheck-golangci-lint
-  :config
-  (setq flycheck-golangci-lint-enable-all t)
-  (setq flycheck-golangci-lint-fast t)
-  (setq flycheck-golangci-lint-disable-linters '("lll" "dupl" "maligned"
-                                                 "prealloc" "gochecknoglobals" "gosec"
-                                                 "funlen" "wsl" "gocognit")))
+;; (use-package flycheck-golangci-lint
+;;   :config
+;;   (setq flycheck-golangci-lint-enable-all t)
+;;   (setq flycheck-golangci-lint-fast t)
+;;   (setq flycheck-golangci-lint-disable-linters '("lll" "dupl" "maligned"
+;;                                                  "prealloc" "gochecknoglobals" "gosec"
+;;                                                  "funlen" "wsl" "gocognit")))
 
 ;; (setq go-packages-function 'custom/go-packages-function)
 ;; (add-hook 'go-mode-hook `(lambda () (custom/go-refresh-packages t)))

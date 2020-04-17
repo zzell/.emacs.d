@@ -183,6 +183,12 @@
 
 ;; ###########################################
 
+(use-package company-lsp
+	:config
+	(push 'company-lsp company-backends)
+	(setq company-lsp-async t)
+	(setq company-lsp-enable-recompletion t))
+
 (use-package lsp-mode
   :config
 	(setq lsp-prefer-capf t)
@@ -250,8 +256,6 @@
 
   (define-key company-active-map (kbd "C-j") 'company-select-next)
   (define-key company-active-map (kbd "C-k") 'company-select-previous)
-  (define-key company-search-map (kbd "C-j") 'company-select-next)
-  (define-key company-search-map (kbd "C-k") 'company-select-previous)
   (define-key prog-mode-map (kbd "C-SPC") 'company-complete)
 
   ;; for C/C++ use rtags: https://github.com/Andersbakken/rtags
@@ -361,9 +365,9 @@
 	("k" diff-hl-previous-hunk "prev" :color red))
 
 (defhydra hydra-eyebrowse (:color blue)
-	"EYE"
+	"Eyebrowse"
 	("l" eyebrowse-next-window-config "next" :color red)
-	("h" eyebrowse-prev-window-config "next" :color red)
+	("h" eyebrowse-prev-window-config "prev" :color red)
 	("n" eyebrowse-create-window-config "new" :color red)
 	("1" eyebrowse-switch-to-window-config-1 "1")
 	("2" eyebrowse-switch-to-window-config-2 "2")
