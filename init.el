@@ -92,7 +92,7 @@
       default-process-coding-system '(utf-8-unix . utf-8-unix))
 
 ;; UI
-(set-fringe-mode 0)
+;; (set-fringe-mode 0)
 (save-place-mode 1)
 (blink-cursor-mode 0)
 (scroll-bar-mode -1)
@@ -194,6 +194,11 @@
 	(setq lsp-prefer-capf t)
 	(push "[/\\\\]vendor$" lsp-file-watch-ignored))
 
+;; (use-package dap-go
+;; 	:config
+
+;; 	)
+
 (use-package python-mode
 	:config (add-hook 'python-mode-hook 'lsp-deferred))
 
@@ -241,6 +246,11 @@
 (use-package yasnippet
   :diminish yas-minor-mode
   :hook (go-mode . yas-minor-mode))
+
+(use-package company-statistics
+  :after company
+  :config
+  (company-statistics-mode))
 
 ;; autocomplete
 (use-package company
@@ -403,6 +413,7 @@
 	 "p" '(counsel-yank-pop :which-key "yank-pop")
 	 "i" '(counsel-imenu :which-key "imenu")
 	 "d" '(dired-jump :which-key "dired")
+	 "SPC" '(neotree :which-key "neotree")
 
 	 "f" '(:ignore t :which-key "files")
 	 "ff" '(counsel-find-file :which-key "find")
@@ -464,17 +475,71 @@
   (eyebrowse-mode 1)
   (setq-default eyebrowse-new-workspace t))
 
-;; Syntax check
+;; ;; Syntax check
+;; (use-package flycheck
+;;   :config
+;;   (add-hook 'prog-mode-hook 'flycheck-mode)
+;;   (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change idle-buffer-switch new-line))
+;; 	)
+
 (use-package flycheck
-  :config
-  (add-hook 'prog-mode-hook 'flycheck-mode)
-  (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change idle-buffer-switch new-line))
-  (setq flycheck-indication-mode nil))
+	:ghook ('(python-mode-hook))
+	:init
+	:config
+	(setq flycheck-display-errors-delay 0.2)
+	(flycheck-add-next-checker 'python-flake8 'python-pylint)
+	(setq flycheck-indication-mode 'right-fringe)
+	(progn
+		;; Custom fringe indicator
+		(when (and (fboundp 'define-fringe-bitmap)
+							 ;; (not syntax-checking-use-original-bitmaps)
+							 )
+			(define-fringe-bitmap 'my-flycheck-fringe-indicator
+				(vector #b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111
+								#b11111111)))
+		(let ((bitmap 'my-flycheck-fringe-indicator
+									;; (if syntax-checking-use-original-bitmaps
+									;;            'flycheck-fringe-bitmap-double-arrow
+									;;   'my-flycheck-fringe-indicator)
+									))
+			(flycheck-define-error-level 'error
+				:severity 2
+				:overlay-category 'flycheck-error-overlay
+				:fringe-bitmap bitmap
+				:error-list-face 'flycheck-error-list-error
+				:fringe-face 'flycheck-fringe-error)
+			(flycheck-define-error-level 'warning
+				:severity 1
+				:overlay-category 'flycheck-warning-overlay
+				:fringe-bitmap bitmap
+				:error-list-face 'flycheck-error-list-warning
+				:fringe-face 'flycheck-fringe-warning)
+			(flycheck-define-error-level 'info
+				:severity 0
+				:overlay-category 'flycheck-info-overlay
+				:fringe-bitmap bitmap
+				:error-list-face 'flycheck-error-list-info
+				:fringe-face 'flycheck-fringe-info))))
 
 ;; (use-package flycheck-pos-tip
 ;;   :config
 ;;   (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
-;;   (setq flycheck-pos-tip-timeout 20))
+;;   (setq flycheck-pos-tip-timeout 0))
 
 ;; hide minor modes
 (use-package diminish
@@ -491,7 +556,7 @@
 (use-package diff-hl
   :config
   (global-diff-hl-mode)
-  (diff-hl-margin-mode)
+  ;; (diff-hl-margin-mode)
   (diff-hl-flydiff-mode))
 
 (use-package dired
@@ -576,7 +641,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
 	 (quote
-		(python-mode lsp-treemacs ace-jump-mode wgrep-ag csv-mode fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent))))
+		(flycheck-posframe flyspell-correct-ivy ivy-prescient golden-ratio-scroll-screen python-mode lsp-treemacs ace-jump-mode wgrep-ag csv-mode fzf go-stacktracer go-rename go-playground go-add-tags go-tag gorepl-mode gore-mode yasnippet yaml-mode xclip which-key use-package restclient request rainbow-delimiters protobuf-mode persp-mode paren-face nord-theme neotree minimap lsp-haskell kaolin-themes json-mode js2-mode indent-guide highlight-parentheses highlight-indentation highlight-indent-guides gruvbox-theme go-guru go-fill-struct go-eldoc go-autocomplete ggtags general focus flycheck-status-emoji flycheck-pos-tip flycheck-golangci-lint flx eyebrowse exec-path-from-shell evil-magit evil-escape evil-commentary evil-cleverparens dumb-jump doom-themes doom dockerfile-mode diminish diff-hl darktooth-theme counsel-projectile company-lsp company-go company-ebdb color-theme-sanityinc-tomorrow avy aggressive-indent))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
