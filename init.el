@@ -536,11 +536,6 @@
 				:error-list-face 'flycheck-error-list-info
 				:fringe-face 'flycheck-fringe-info))))
 
-;; (use-package flycheck-pos-tip
-;;   :config
-;;   (with-eval-after-load 'flycheck (flycheck-pos-tip-mode))
-;;   (setq flycheck-pos-tip-timeout 0))
-
 ;; hide minor modes
 (use-package diminish
   :config
@@ -557,6 +552,12 @@
   :config
   (global-diff-hl-mode)
   ;; (diff-hl-margin-mode)
+	(let* ((height (frame-char-height))
+				 (width 2)
+				 (ones (1- (expt 2 width)))
+				 (bits (make-vector height ones)))
+		(define-fringe-bitmap 'my-diff-hl-bitmap bits height width))
+	(setq diff-hl-fringe-bmp-function (lambda (type pos) 'my-diff-hl-bitmap))
   (diff-hl-flydiff-mode))
 
 (use-package dired
